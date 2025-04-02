@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Batch Generator - MuroGames Admin</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+    <style>
+        .generator-container {
+            max-width: 800px;
+            margin: 50px auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            height: 300px;
+            font-family: monospace;
+        }
+        
+        .generate-button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .generate-button:hover {
+            background-color: #2980b9;
+        }
+        
+        .progress-container {
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .progress-bar {
+            height: 20px;
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        
+        .progress {
+            height: 100%;
+            background-color: #3498db;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .status {
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">
+                <a href="../index.html">
+                    <img src="../images/logo.png" alt="MuroGames Logo">
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="generator-container">
+                <h1>Game Batch Generator</h1>
+                <p>Use this tool to generate HTML pages for multiple games at once.</p>
+                
+                <form id="batch-generator-form">
+                    <div class="form-group">
+                        <label for="games-json">Games JSON Data</label>
+                        <textarea id="games-json" name="games" required placeholder='[
+  {
+    "id": "game-id",
+    "title": "Game Title",
+    "description": "Game description",
+    "url": "https://example.com/game",
+    "genre": "Puzzle"
+  },
+  {
+    "id": "another-game",
+    "title": "Another Game",
+    "description": "Another description",
+    "url": "https://example.com/another-game",
+    "genre": "Action"
+  }
+]'></textarea>
+                    </div>
+                    <button type="submit" class="generate-button">Generate Game Pages</button>
+                </form>
+                
+                <div id="progress-container" class="progress-container">
+                    <div class="progress-bar">
+                        <div id="progress" class="progress"></div>
+                    </div>
+                    <div id="status" class="status">Generating game pages...</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 MuroGames. All rights reserved.</p>
+            <div class="footer-links">
+                <a href="#">About Us</a>
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="dashboard.html">Admin Dashboard</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if user is logged in
+            if (!localStorage.getItem('adminLoggedIn')) {
+                window.location.href = 'login.html';
+            }
+            
+            const batchGeneratorForm = document.getElementById('batch-generator-form');
+            const progressContainer = document.getElementById('progress-container');
+            const progressBar = document.getElementById('progress');
+            const statusText = document.getElementById('status');
+            
+            batchGeneratorForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                try {
+                    const gamesJson = document.getElementById('games-json').value;
+                    const games = JSON.parse(gamesJson);
+                    
+                    if (!Array.isArray(games)) {
+                        throw new Error('Input must be an array of game objects');
+                    }
+                    
+                    // Show progress container
+                    progressContainer.style.display = 'block';
+                    
+                    // Generate game pages
+                    generateGamePages(games);
+                } catch (error) {
+                    alert('Error parsing JSON: ' + error.message);
+                }
+            });
+            
+            function generateGamePages(games) {
+                // In a real implementation, this would create actual files
+                // For this demo, we'll simulate the process
+                
+                let completed = 0;
+                const total = games.length;
+                
+                // Update progress initially
+                updateProgress(completed, total);
+                
+                // Process each game
+                const interval = setInterval(() => {
+                    if (completed < total) {
+                        completed++;
+                        updateProgress(completed, total);
+                        
+                        // If all games are processed, show completion message
+                        if (completed === total) {
+                            clearInterval(interval);
+                            statusText.textContent = `All ${total} game pages generated successfully!`;
+                            
+                            // In a real implementation, we would save the files to the server
+                            // For this demo, we'll just show a success message
+                            setTimeout(() => {
+                                alert(`Successfully generated ${total} game pages!`);
+                            }, 500);
+                        }
+                    }
+                }, 100);
+            }
+            
+            function updateProgress(completed, total) {
+                const percentage = (completed / total) * 100;
+                progressBar.style.width = percentage + '%';
+                statusText.textContent = `Generating game pages... ${completed}/${total}`;
+            }
+            
+            function generateGamePageHTML(game) {
+                return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${game.title} - MuroGames</title>
+    <meta name="description" content="${game.description}">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">
+                <a href="../index.html">
+                    <img src="../images/logo.png" alt="MuroGames Logo">
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <a href="../index.html" class="back-button">← Back to Games</a>
+            <div class="game-container">
+                <iframe src="${game.url}" class="game-frame" allowfullscreen></iframe>
+                <div class="game-details">
+                    <h1>${game.title}</h1>
+                    <p>${game.description}</p>
+                    <p>Genre: ${game.genre}</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 MuroGames. All rights reserved.</p>
+            <div class="footer-links">
+                <a href="#">About Us</a>
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="../admin/login.html">Admin</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>`;
+            }
+        });
+    </script>
+</body>
+</html>
