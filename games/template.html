@@ -3,44 +3,754 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Template - MuroGames</title>
-    <link rel="stylesheet" href="../css/style.css">
-    <link rel="icon" href="../images/favicon.ico" type="image/x-icon">
+    <title>Game Title - MuroGames</title>
+    <!-- Tailwind CSS via jsdelivr -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Font Awesome via jsdelivr -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css">
+    <style>
+        /* Custom styles */
+        .game-container {
+            position: relative;
+            width: 100%;
+            height: 0;
+            padding-bottom: 75%; /* 4:3 aspect ratio */
+            overflow: hidden;
+        }
+        .game-iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .loader {
+            border-top-color: #3498db;
+            -webkit-animation: spinner 1.5s linear infinite;
+            animation: spinner 1.5s linear infinite;
+        }
+        @-webkit-keyframes spinner {
+            0% { -webkit-transform: rotate(0deg); }
+            100% { -webkit-transform: rotate(360deg); }
+        }
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .comment-avatar {
+            height: 3rem;
+            width: 3rem;
+        }
+        .skeleton {
+            animation: skeleton-loading 1s linear infinite alternate;
+        }
+        @keyframes skeleton-loading {
+            0% {
+                background-color: rgba(206, 212, 218, 0.2);
+            }
+            100% {
+                background-color: rgba(206, 212, 218, 0.5);
+            }
+        }
+    </style>
 </head>
-<body>
-    <header>
-        <div class="container">
-            <div class="logo">
-                <a href="../index.html">
-                    <img src="../images/logo.png" alt="MuroGames Logo">
+<body class="bg-gray-100 font-sans">
+    <!-- Navigation -->
+    <nav class="bg-gray-800 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex justify-between items-center">
+                <a href="../index.html" class="flex items-center space-x-3">
+                    <span class="text-2xl font-bold">MuroGames</span>
                 </a>
+                <div class="hidden md:flex space-x-6">
+                    <a href="../index.html" class="hover:text-blue-300 transition">Home</a>
+                    <a href="../categories.html" class="hover:text-blue-300 transition">Categories</a>
+                    <a href="../popular.html" class="hover:text-blue-300 transition">Popular</a>
+                    <a href="../about.html" class="hover:text-blue-300 transition">About Us</a>
+                </div>
+                <div class="md:hidden">
+                    <button id="menu-toggle" class="focus:outline-none">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
             </div>
         </div>
-    </header>
+        <!-- Mobile menu -->
+        <div id="mobile-menu" class="md:hidden hidden">
+            <div class="container mx-auto px-4 py-3 flex flex-col space-y-3">
+                <a href="../index.html" class="block hover:text-blue-300 transition">Home</a>
+                <a href="../categories.html" class="block hover:text-blue-300 transition">Categories</a>
+                <a href="../popular.html" class="block hover:text-blue-300 transition">Popular</a>
+                <a href="../about.html" class="block hover:text-blue-300 transition">About Us</a>
+            </div>
+        </div>
+    </nav>
 
-    <main>
-        <div class="container">
-            <a href="../index.html" class="back-button">← Back to Games</a>
-            <div class="game-container">
-                <iframe src="GAME_URL_PLACEHOLDER" class="game-frame" allowfullscreen></iframe>
-                <div class="game-details">
-                    <h1>GAME_TITLE_PLACEHOLDER</h1>
-                    <p>GAME_DESCRIPTION_PLACEHOLDER</p>
+    <main class="container mx-auto px-4 py-8">
+        <!-- Breadcrumb navigation -->
+        <div class="text-sm mb-6">
+            <a href="../index.html" class="text-blue-600 hover:underline">Home</a>
+            <span class="mx-2">/</span>
+            <a href="../categories.html" class="text-blue-600 hover:underline">Categories</a>
+            <span class="mx-2">/</span>
+            <span class="text-gray-600" id="game-category">Puzzle</span>
+        </div>
+
+        <!-- Game title -->
+        <h1 id="game-title" class="text-3xl font-bold mb-4">Game Title</h1>
+
+        <!-- Game container section -->
+        <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+            <div id="game-wrapper" class="relative">
+                <!-- Loading indicator -->
+                <div id="game-loader" class="absolute inset-0 flex items-center justify-center bg-gray-800 bg-opacity-75 z-10">
+                    <div class="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-24 w-24"></div>
+                    <p class="text-white ml-4 text-xl">Loading game...</p>
+                </div>
+                
+                <!-- Error message -->
+                <div id="game-error" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-gray-800 bg-opacity-75 z-10">
+                    <i class="fas fa-exclamation-triangle text-yellow-400 text-5xl mb-4"></i>
+                    <p class="text-white text-xl mb-4">Failed to load the game</p>
+                    <button id="retry-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                        Retry
+                    </button>
+                </div>
+                
+                <!-- Game iframe container -->
+                <div class="game-container">
+                    <iframe id="game-iframe" class="game-iframe" src="about:blank" allowfullscreen></iframe>
+                </div>
+            </div>
+            
+            <!-- Game controls -->
+            <div class="p-4 bg-gray-800 text-white flex justify-between items-center">
+                <div>
+                    <button id="fullscreen-btn" class="bg-gray-700 hover:bg-gray-600 rounded px-3 py-1 flex items-center">
+                        <i class="fas fa-expand mr-2"></i> Fullscreen
+                    </button>
+                </div>
+                <div class="flex space-x-4">
+                    <button id="like-btn" class="hover:text-blue-400 flex items-center">
+                        <i class="far fa-thumbs-up mr-1"></i> <span id="like-count">245</span>
+                    </button>
+                    <button id="share-btn" class="hover:text-blue-400 flex items-center">
+                        <i class="fas fa-share-alt mr-1"></i> Share
+                    </button>
+                    <button id="favorite-btn" class="hover:text-yellow-400 flex items-center">
+                        <i class="far fa-star mr-1"></i> Favorite
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game information and sidebar layout -->
+        <div class="flex flex-col md:flex-row gap-8">
+            <!-- Main content -->
+            <div class="w-full md:w-2/3">
+                <!-- Game information -->
+                <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                    <h2 class="text-2xl font-bold mb-4">Game Information</h2>
+                    <div class="flex flex-wrap gap-4 mb-6">
+                        <div class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center">
+                            <i class="fas fa-gamepad mr-2"></i> <span id="game-genre">Puzzle</span>
+                        </div>
+                        <div class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm flex items-center">
+                            <i class="fas fa-users mr-2"></i> <span id="player-count">Single Player</span>
+                        </div>
+                        <div class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm flex items-center">
+                            <i class="fas fa-desktop mr-2"></i> <span id="platform">HTML5</span>
+                        </div>
+                        <div class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm flex items-center">
+                            <i class="fas fa-star mr-2"></i> <span id="rating">4.5/5</span>
+                        </div>
+                    </div>
+                    
+                    <h3 class="text-xl font-semibold mb-2">Description</h3>
+                    <p id="game-description" class="text-gray-700 mb-6">
+                        This is where the game description goes. It provides information about the game's story, objectives, and what makes it unique and fun to play.
+                    </p>
+                    
+                    <h3 class="text-xl font-semibold mb-2">How to Play</h3>
+                    <div id="game-instructions" class="text-gray-700 mb-4">
+                        <ul class="list-disc pl-5 space-y-2">
+                            <li>Use the arrow keys to move your character.</li>
+                            <li>Press Space to jump or perform actions.</li>
+                            <li>Collect items to increase your score.</li>
+                            <li>Avoid obstacles and enemies.</li>
+                            <li>Reach the end of each level to progress in the game.</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Comments section -->
+                <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                    <h2 class="text-2xl font-bold mb-4">Comments (<span id="comment-count">3</span>)</h2>
+                    
+                    <!-- Comment form -->
+                    <div class="mb-8">
+                        <form id="comment-form" class="space-y-4">
+                            <div>
+                                <label for="comment-name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                                <input type="text" id="comment-name" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Your name">
+                            </div>
+                            <div>
+                                <label for="comment-text" class="block text-sm font-medium text-gray-700 mb-1">Comment</label>
+                                <textarea id="comment-text" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Share your thoughts about this game"></textarea>
+                            </div>
+                            <div>
+                                <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                    <i class="fas fa-paper-plane mr-2"></i> Post Comment
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Comments list -->
+                    <div id="comments-list" class="space-y-6">
+                        <!-- Comment 1 -->
+                        <div class="flex space-x-4">
+                            <div class="comment-avatar bg-blue-200 rounded-full flex items-center justify-center">
+                                <span class="text-blue-700 text-xl font-bold">JD</span>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-center mb-1">
+                                    <h4 class="font-bold">John Doe</h4>
+                                    <span class="text-sm text-gray-500">2 days ago</span>
+                                </div>
+                                <p class="text-gray-700">This game is awesome! I love the graphics and the gameplay is super fun. I've been playing for hours now!</p>
+                                <div class="mt-2 flex items-center space-x-4">
+                                    <button class="text-sm text-gray-500 hover:text-blue-600 flex items-center">
+                                        <i class="far fa-thumbs-up mr-1"></i> <span>12</span>
+                                    </button>
+                                    <button class="text-sm text-gray-500 hover:text-red-600 flex items-center">
+                                        <i class="far fa-thumbs-down mr-1"></i> <span>2</span>
+                                    </button>
+                                    <button class="text-sm text-gray-500 hover:text-blue-600">Reply</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Comment 2 -->
+                        <div class="flex space-x-4">
+                            <div class="comment-avatar bg-green-200 rounded-full flex items-center justify-center">
+                                <span class="text-green-700 text-xl font-bold">AS</span>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-center mb-1">
+                                    <h4 class="font-bold">Amy Smith</h4>
+                                    <span class="text-sm text-gray-500">5 days ago</span>
+                                </div>
+                                <p class="text-gray-700">I found the controls a bit difficult at first, but once I got used to them, the game was really enjoyable. The puzzles are challenging but not too hard.</p>
+                                <div class="mt-2 flex items-center space-x-4">
+                                    <button class="text-sm text-gray-500 hover:text-blue-600 flex items-center">
+                                        <i class="far fa-thumbs-up mr-1"></i> <span>8</span>
+                                    </button>
+                                    <button class="text-sm text-gray-500 hover:text-red-600 flex items-center">
+                                        <i class="far fa-thumbs-down mr-1"></i> <span>1</span>
+                                    </button>
+                                    <button class="text-sm text-gray-500 hover:text-blue-600">Reply</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Comment 3 -->
+                        <div class="flex space-x-4">
+                            <div class="comment-avatar bg-purple-200 rounded-full flex items-center justify-center">
+                                <span class="text-purple-700 text-xl font-bold">MJ</span>
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-center mb-1">
+                                    <h4 class="font-bold">Mike Johnson</h4>
+                                    <span class="text-sm text-gray-500">1 week ago</span>
+                                </div>
+                                <p class="text-gray-700">Been playing this with my kids and we're having a blast! Such a well-designed game with great replay value. Would highly recommend to anyone looking for a fun puzzle game.</p>
+                                <div class="mt-2 flex items-center space-x-4">
+                                    <button class="text-sm text-gray-500 hover:text-blue-600 flex items-center">
+                                        <i class="far fa-thumbs-up mr-1"></i> <span>15</span>
+                                    </button>
+                                    <button class="text-sm text-gray-500 hover:text-red-600 flex items-center">
+                                        <i class="far fa-thumbs-down mr-1"></i> <span>0</span>
+                                    </button>
+                                    <button class="text-sm text-gray-500 hover:text-blue-600">Reply</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Load more comments button -->
+                    <div class="mt-6 text-center">
+                        <button id="load-more-comments" class="text-blue-600 hover:text-blue-800 font-medium">
+                            Load more comments <i class="fas fa-chevron-down ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="w-full md:w-1/3">
+                <!-- Related games section -->
+                <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                    <h2 class="text-2xl font-bold mb-4">Related Games</h2>
+                    <div class="space-y-4">
+                        <!-- Related game 1 -->
+                        <a href="#" class="block hover:bg-gray-50 rounded-lg transition p-2">
+                            <div class="flex space-x-3">
+                                <div class="w-20 h-20 bg-gray-200 rounded overflow-hidden">
+                                    <img src="https://via.placeholder.com/80" alt="Related Game 1" class="w-full h-full object-cover">
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-gray-900">Puzzle Master</h3>
+                                    <p class="text-sm text-gray-600 line-clamp-2">A challenging puzzle game with beautiful graphics and mind-bending levels.</p>
+                                    <div class="flex items-center mt-1">
+                                        <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                        <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                        <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                        <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                        <i class="fas fa-star-half-alt text-yellow-400 text-xs"></i>
+                                        <span class="text-xs text-gray-500 ml-1">4.5</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                        
+                        <!-- Related game 2 -->
+                        <a href="#" class="block hover:bg-gray-50 rounded-lg transition p-2">
+                            <div class="flex space-x-3">
+                                <div class="w-20 h-20 bg-gray-200 rounded overflow-hidden">
+                                    <img src="https://via.placeholder.com/80" alt="Related Game 2" class="w-full h-full object-cover">
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-gray-900">Brain Teaser</h3>
+                                    <p class="text-sm text-gray-600 line-clamp-2">Test your logical thinking with this addictive brain training game.</p>
+                                    <div class="flex items-center mt-1">
+                                        <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                        <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                        <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                        <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                        <i class="far fa-star text-yellow-400 text-xs"></i>
+                                        <span class="text-xs text-gray-500 ml-1">4.0</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                        
+                        <!-- Related game 3 -->
+                        <a href="#" class="block hover:bg-gray-50 rounded-lg transition p-2">
+                            <div class="flex space-x-3">
+                                <div class="w-20 h-20 bg-gray-200 rounded overflow-hidden">
+                                    <img src="https://via.placeholder.com/80" alt="Related Game 3" class="w-full h-full object-cover">
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-gray-900">Block Builder</h3>
+                                    <p class="text-sm text-gray-600 line-clamp-2">Build amazing structures with blocks in this creative sandbox game.</p>
+                                    <div class="flex items-center mt-1">
+                                        <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                        <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                        <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                        <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                        <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                        <span class="text-xs text-gray-500 ml-1">5.0</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                        
+                        <!-- Related game 4 -->
+                        <a href="#" class="block hover:bg-gray-50 rounded-lg transition p-2">
+                            <div class="flex space-x-3">
+                                <div class="w-20 h-20 bg-gray-200 rounded overflow-hidden">
+                                    <img src="https://via.placeholder.com/80" alt="Related Game 4" class="w-full h-full object-cover">
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-gray-900">Memory Match</h3>
+                                    <p class="text-sm text-gray-600 line-clamp-2">A classic memory card matching game with a modern twist.</p>
+                                    <div class="flex items-center mt-1">
+                                        <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                        <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                        <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                        <i class="fas fa-star-half-alt text-yellow-400 text-xs"></i>
+                                        <i class="far fa-star text-yellow-400 text-xs"></i>
+                                        <span class="text-xs text-gray-500 ml-1">3.5</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="mt-4 text-center">
+                        <a href="#" class="text-blue-600 hover:text-blue-800 font-medium">
+                            View more related games <i class="fas fa-angle-right ml-1"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Popular games section -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-2xl font-bold mb-4">Popular Games</h2>
+                    <div class="space-y-4">
+                        <!-- Popular game 1 -->
+                        <a href="#" class="block hover:bg-gray-50 rounded-lg transition p-2">
+                            <div class="flex items-center space-x-3">
+                                <div class="text-2xl font-bold text-gray-300 w-8 text-center">1</div>
+                                <div class="w-14 h-14 bg-gray-200 rounded overflow-hidden">
+                                    <img src="https://via.placeholder.com/56" alt="Popular Game 1" class="w-full h-full object-cover">
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-gray-900">Adventure Quest</h3>
+                                    <div class="flex items-center">
+                                        <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                        <span class="text-xs text-gray-500 ml-1">4.9</span>
+                                        <span class="mx-2 text-gray-300">•</span>
+                                        <span class="text-xs text-gray-500">520K plays</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                        
+                        <!-- Popular game 2 -->
+                        <a href="#" class="block hover:bg-gray-50 rounded-lg transition p-2">
+                            <div class="flex items-center space-x-3">
+                                <div class="text-2xl font-bold text-gray-300 w-8 text-center">2</div>
+                                <div class="w-14 h-14 bg-gray-200 rounded overflow-hidden">
+                                    <img src="https://via.placeholder.com/56" alt="Popular Game 2" class="w-full h-full object-cover">
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-gray-900">Space Shooter</h3>
+                                    <div class="flex items-center">
+                                        <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                        <span class="text-xs text-gray-500 ml-1">4.8</span>
+                                        <span class="mx-2 text-gray-300">•</span>
+                                        <span class="text-xs text-gray-500">430K plays</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                        
+                        <!-- Popular game 3 -->
+                        <a href="#" class="block hover:bg-gray-50 rounded-lg transition p-2">
+                            <div class="flex items-center space-x-3">
+                                <div class="text-2xl font-bold text-gray-300 w-8 text-center">3</div>
+                                <div class="w-14 h-14 bg-gray-200 rounded overflow-hidden">
+                                    <img src="https://via.placeholder.com/56" alt="Popular Game 3" class="w-full h-full object-cover">
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-gray-900">Candy Crush Clone</h3>
+                                    <div class="flex items-center">
+                                        <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                        <span class="text-xs text-gray-500 ml-1">4.7</span>
+                                        <span class="mx-2 text-gray-300">•</span>
+                                        <span class="text-xs text-gray-500">380K plays</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                        
+                        <!-- Popular game 4 -->
+                        <a href="#" class="block hover:bg-gray-50 rounded-lg transition p-2">
+                            <div class="flex items-center space-x-3">
+                                <div class="text-2xl font-bold text-gray-300 w-8 text-center">4</div>
+                                <div class="w-14 h-14 bg-gray-200 rounded overflow-hidden">
+                                    <img src="https://via.placeholder.com/56" alt="Popular Game 4" class="w-full h-full object-cover">
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-gray-900">Car Racing 3D</h3>
+                                    <div class="flex items-center">
+                                        <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                        <span class="text-xs text-gray-500 ml-1">4.6</span>
+                                        <span class="mx-2 text-gray-300">•</span>
+                                        <span class="text-xs text-gray-500">340K plays</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                        
+                        <!-- Popular game 5 -->
+                        <a href="#" class="block hover:bg-gray-50 rounded-lg transition p-2">
+                            <div class="flex items-center space-x-3">
+                                <div class="text-2xl font-bold text-gray-300 w-8 text-center">5</div>
+                                <div class="w-14 h-14 bg-gray-200 rounded overflow-hidden">
+                                    <img src="https://via.placeholder.com/56" alt="Popular Game 5" class="w-full h-full object-cover">
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-gray-900">Zombie Survival</h3>
+                                    <div class="flex items-center">
+                                        <i class="fas fa-star text-yellow-400 text-xs"></i>
+                                        <span class="text-xs text-gray-500 ml-1">4.5</span>
+                                        <span class="mx-2 text-gray-300">•</span>
+                                        <span class="text-xs text-gray-500">320K plays</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </main>
 
-    <footer>
-        <div class="container">
-            <p>&copy; 2025 MuroGames. All rights reserved.</p>
-            <div class="footer-links">
-                <a href="#">About Us</a>
-                <a href="#">Privacy Policy</a>
-                <a href="#">Terms of Service</a>
-                <a href="../admin/login.html">Admin</a>
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">MuroGames</h3>
+                    <p class="text-gray-400">The best collection of free online games. Play HTML5 games on any device - desktop, mobile, or tablet.</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Categories</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Action</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Adventure</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Puzzle</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Strategy</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition">Sports</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Quick Links</h3>
+                    <ul class="space-y-2">
+                        <li><a href="../index.html" class="text-gray-400 hover:text-white transition">Home</a></li>
+                        <li><a href="../popular.html" class="text-gray-400 hover:text-white transition">Popular Games</a></li>
+                        <li><a href="../new.html" class="text-gray-400 hover:text-white transition">New Games</a></li>
+                        <li><a href="../about.html" class="text-gray-400 hover:text-white transition">About Us</a></li>
+                        <li><a href="../contact.html" class="text-gray-400 hover:text-white transition">Contact</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Legal</h3>
+                    <ul class="space-y-2">
+                        <li><a href="../privacy.html" class="text-gray-400 hover:text-white transition">Privacy Policy</a></li>
+                        <li><a href="../terms.html" class="text-gray-400 hover:text-white transition">Terms of Service</a></li>
+                        <li><a href="../cookie.html" class="text-gray-400 hover:text-white transition">Cookie Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-6 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-gray-400">© 2023 MuroGames. All rights reserved.</p>
+                <div class="flex space-x-4 mt-4 md:mt-0">
+                    <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="text-gray-400 hover:text-white transition"><i class="fab fa-youtube"></i></a>
+                </div>
             </div>
         </div>
     </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // Mobile menu toggle
+        document.getElementById('menu-toggle').addEventListener('click', function() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Game data - would normally come from backend
+        const gameData = {
+            id: 'sample-game',
+            title: 'Sample HTML5 Game',
+            description: 'This is a sample HTML5 game that demonstrates the embedding capabilities of MuroGames. It features engaging gameplay, beautiful graphics, and challenging levels that will keep you entertained for hours.',
+            instructions: [
+                'Use the arrow keys to move your character.',
+                'Press Space to jump or perform actions.',
+                'Collect items to increase your score.',
+                'Avoid obstacles and enemies.',
+                'Reach the end of each level to progress in the game.'
+            ],
+            category: 'Puzzle',
+            tags: ['puzzle', 'brain', 'logic'],
+            playerCount: 'Single Player',
+            platform: 'HTML5',
+            rating: 4.5,
+            gameUrl: 'https://games.example.com/sample-game/', // Replace with actual game URL
+            thumbnailUrl: 'https://via.placeholder.com/300',
+            relatedGames: [
+                // Related games data would go here
+            ]
+        };
+
+        // Populate game data in the page
+        document.getElementById('game-title').textContent = gameData.title;
+        document.getElementById('game-category').textContent = gameData.category;
+        document.getElementById('game-description').textContent = gameData.description;
+        document.getElementById('game-genre').textContent = gameData.category;
+        document.getElementById('player-count').textContent = gameData.playerCount;
+        document.getElementById('platform').textContent = gameData.platform;
+        document.getElementById('rating').textContent = gameData.rating + '/5';
+
+        // Game loading simulation
+        const gameIframe = document.getElementById('game-iframe');
+        const gameLoader = document.getElementById('game-loader');
+        const gameError = document.getElementById('game-error');
+
+        // This would be replaced with actual game URL
+        const demoGameUrl = 'about:blank'; // Replace with actual game URL when available
+
+        // Simulate game loading
+        function loadGame() {
+            gameLoader.style.display = 'flex';
+            gameError.style.display = 'none';
+            
+            // Simulate loading time (would be removed in production)
+            setTimeout(() => {
+                const loadSuccess = true; // This would be a real check in production
+                
+                if (loadSuccess) {
+                    gameIframe.src = demoGameUrl;
+                    gameLoader.style.display = 'none';
+                } else {
+                    showGameError();
+                }
+            }, 2000);
+        }
+
+        function showGameError() {
+            gameLoader.style.display = 'none';
+            gameError.style.display = 'flex';
+        }
+
+        // Handle retry button click
+        document.getElementById('retry-button').addEventListener('click', () => {
+            loadGame();
+        });
+
+        // Handle fullscreen button
+        document.getElementById('fullscreen-btn').addEventListener('click', () => {
+            const gameContainer = document.querySelector('.game-container');
+            
+            if (gameContainer.requestFullscreen) {
+                gameContainer.requestFullscreen();
+            } else if (gameContainer.mozRequestFullScreen) { /* Firefox */
+                gameContainer.mozRequestFullScreen();
+            } else if (gameContainer.webkitRequestFullscreen) { /* Chrome, Safari and Opera */
+                gameContainer.webkitRequestFullscreen();
+            } else if (gameContainer.msRequestFullscreen) { /* IE/Edge */
+                gameContainer.msRequestFullscreen();
+            }
+        });
+
+        // Like button functionality
+        let liked = false;
+        const likeBtn = document.getElementById('like-btn');
+        const likeCount = document.getElementById('like-count');
+        
+        likeBtn.addEventListener('click', () => {
+            const currentCount = parseInt(likeCount.textContent);
+            if (!liked) {
+                likeCount.textContent = currentCount + 1;
+                likeBtn.querySelector('i').classList.remove('far');
+                likeBtn.querySelector('i').classList.add('fas', 'text-blue-500');
+                liked = true;
+            } else {
+                likeCount.textContent = currentCount - 1;
+                likeBtn.querySelector('i').classList.remove('fas', 'text-blue-500');
+                likeBtn.querySelector('i').classList.add('far');
+                liked = false;
+            }
+        });
+
+        // Favorite button functionality
+        let favorited = false;
+        const favoriteBtn = document.getElementById('favorite-btn');
+        
+        favoriteBtn.addEventListener('click', () => {
+            if (!favorited) {
+                favoriteBtn.querySelector('i').classList.remove('far');
+                favoriteBtn.querySelector('i').classList.add('fas', 'text-yellow-400');
+                favorited = true;
+            } else {
+                favoriteBtn.querySelector('i').classList.remove('fas', 'text-yellow-400');
+                favoriteBtn.querySelector('i').classList.add('far');
+                favorited = false;
+            }
+        });
+
+        // Share button functionality
+        document.getElementById('share-btn').addEventListener('click', () => {
+            // Check if Web Share API is available
+            if (navigator.share) {
+                navigator.share({
+                    title: gameData.title,
+                    text: 'Check out this awesome game!',
+                    url: window.location.href,
+                })
+                .catch(error => console.log('Error sharing:', error));
+            } else {
+                // Fallback for browsers that don't support Web Share API
+                alert('Copy this URL to share: ' + window.location.href);
+            }
+        });
+
+        // Comment form handling
+        const commentForm = document.getElementById('comment-form');
+        const commentsCount = document.getElementById('comment-count');
+        const commentsList = document.getElementById('comments-list');
+        
+        commentForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const nameInput = document.getElementById('comment-name');
+            const commentInput = document.getElementById('comment-text');
+            
+            const name = nameInput.value.trim();
+            const comment = commentInput.value.trim();
+            
+            if (name && comment) {
+                // Create initials for avatar
+                const initials = name.split(' ').map(word => word[0]).join('').toUpperCase();
+                
+                // Random color for avatar
+                const colors = ['blue', 'green', 'purple', 'red', 'yellow', 'indigo', 'pink'];
+                const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                
+                // Create comment HTML
+                const commentHTML = `
+                    <div class="flex space-x-4">
+                        <div class="comment-avatar bg-${randomColor}-200 rounded-full flex items-center justify-center">
+                            <span class="text-${randomColor}-700 text-xl font-bold">${initials}</span>
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center mb-1">
+                                <h4 class="font-bold">${name}</h4>
+                                <span class="text-sm text-gray-500">Just now</span>
+                            </div>
+                            <p class="text-gray-700">${comment}</p>
+                            <div class="mt-2 flex items-center space-x-4">
+                                <button class="text-sm text-gray-500 hover:text-blue-600 flex items-center">
+                                    <i class="far fa-thumbs-up mr-1"></i> <span>0</span>
+                                </button>
+                                <button class="text-sm text-gray-500 hover:text-red-600 flex items-center">
+                                    <i class="far fa-thumbs-down mr-1"></i> <span>0</span>
+                                </button>
+                                <button class="text-sm text-gray-500 hover:text-blue-600">Reply</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Add comment to list
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = commentHTML;
+                commentsList.insertBefore(tempDiv.firstElementChild, commentsList.firstChild);
+                
+                // Update comment count
+                const currentCount = parseInt(commentsCount.textContent);
+                commentsCount.textContent = currentCount + 1;
+                
+                // Reset form
+                nameInput.value = '';
+                commentInput.value = '';
+                
+                // Show success message
+                alert('Comment posted successfully!');
+            } else {
+                alert('Please enter your name and comment.');
+            }
+        });
+
+        // Initialize game loading
+        window.addEventListener('load', loadGame);
+    </script>
 </body>
 </html>
