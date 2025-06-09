@@ -1,8 +1,13 @@
 from PIL import Image, ImageDraw, ImageFont
+from pathlib import Path
 import os
 
+# Determine the directory of this script and the images output folder
+BASE_DIR = Path(__file__).resolve().parent
+images_dir = BASE_DIR / "images"
+
 # Create directory for logo if it doesn't exist
-os.makedirs('/home/ubuntu/murogames/images', exist_ok=True)
+images_dir.mkdir(parents=True, exist_ok=True)
 
 # Set up the image
 width, height = 400, 100
@@ -56,7 +61,7 @@ text_y = height // 2 - 20
 draw.text((text_x, text_y), text, font=font, fill=text_color)
 
 # Save the logo
-logo_path = '/home/ubuntu/murogames/images/logo.png'
+logo_path = images_dir / "logo.png"
 img.save(logo_path)
 
 # Create a smaller version for favicon
@@ -74,7 +79,7 @@ favicon_draw.ellipse([(16, 12), (20, 16)], fill=text_color)
 favicon_draw.ellipse([(12, 16), (16, 20)], fill=text_color)
 
 # Save the favicon
-favicon_path = '/home/ubuntu/murogames/images/favicon.ico'
+favicon_path = images_dir / "favicon.ico"
 favicon.save(favicon_path)
 
 print(f"Logo created at {logo_path}")
