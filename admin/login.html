@@ -1529,13 +1529,23 @@ Sitemap: https://murogames.pages.dev/sitemap.xml</textarea>
     </div>
 
     <script>
-        // Authentication Logic
-        document.getElementById('login-btn').addEventListener('click', function() {
+        // Authentication Logic using hashed password
+        const STORED_HASH = '6faba6e4ed724c5b54fad19eca98923e2198cdbba78db5e74672c83217fb33a6';
+
+        async function sha256(message) {
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        document.getElementById('login-btn').addEventListener('click', async function() {
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            
-            // Simple authentication (in real-world, this would be replaced with proper auth)
-            if(username === 'admin' && password === 'password') {
+
+            const hashed = await sha256(password);
+            if(username === 'admin' && hashed === STORED_HASH) {
+                localStorage.setItem('adminLoggedIn', 'true');
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('admin-panel').classList.remove('hidden');
                 document.getElementById('admin-name').textContent = username;
@@ -1702,9 +1712,7 @@ Sitemap: https://murogames.pages.dev/sitemap.xml</textarea>
         
         // Initialize the app with "admin" tab
         document.addEventListener('DOMContentLoaded', function() {
-            // For demo purposes, automatically log in
-            // In production, remove this auto-login
-            // document.getElementById('login-btn').click();
+            // Initialization logic can go here
         });
     </script>
 </body>
