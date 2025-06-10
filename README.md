@@ -1,7 +1,14 @@
 # MuroGames Website
 
-MuroGames is a simple static site that showcases a collection of free HTML5 games sourced from itch.io.
-It uses plain HTML, CSS and JavaScript with no backend server so it can be hosted on any static web service.
+MuroGames is a lightweight static site that showcases a growing collection of free HTML5 games sourced from itch.io.
+Everything runs in the browser with plain HTML, CSS and JavaScript so it can be hosted on any static web service.
+
+## Features
+
+* Responsive Tailwind based layout
+* Dynamic category filtering and search
+* Admin tools to generate individual game pages
+* Python script for building the site logo
 
 ## Running Locally
 
@@ -21,7 +28,7 @@ Thumbnails for games live in `images/games/`. Make sure to add a suitable image 
 
 ## Game Categories
 
-The homepage allows visitors to filter games by genre. Available categories are **Action**, **Adventure**, **Puzzle**, **Strategy**, and **Sports**. Category names are matched case-insensitively.
+Categories are generated automatically from the game list. Click a category button or use the search box on the homepage to filter the catalog.
 
 
 ## Logo Generator
