@@ -659,16 +659,20 @@
         function filterGamesByCategory(category) {
             // Clear all games container
             allGamesContainer.innerHTML = '';
-            
+
+            const selected = category.toLowerCase();
+
             // Filter and load games
-            if (category === 'all') {
+            if (selected === 'all') {
                 games.forEach(game => {
                     allGamesContainer.appendChild(createGameCard(game));
                 });
             } else {
-                games.filter(game => game.category === category).forEach(game => {
-                    allGamesContainer.appendChild(createGameCard(game));
-                });
+                games
+                    .filter(game => game.category.toLowerCase() === selected)
+                    .forEach(game => {
+                        allGamesContainer.appendChild(createGameCard(game));
+                    });
             }
         }
 
@@ -687,7 +691,12 @@
             
             // Load similar games (games in the same category)
             similarGamesContainer.innerHTML = '';
-            games.filter(g => g.category === game.category && g.id !== game.id)
+            games
+                .filter(
+                    g =>
+                        g.category.toLowerCase() === game.category.toLowerCase() &&
+                        g.id !== game.id
+                )
                 .slice(0, 4)
                 .forEach(similarGame => {
                     similarGamesContainer.appendChild(createGameCard(similarGame));

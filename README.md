@@ -15,9 +15,14 @@ Then visit `http://localhost:8000` to browse the games.
 
 ## Adding Games
 
-Games are listed in `js/script.js` in the `games` array. Each entry defines the page id, title, description, thumbnail, source URL and genre. After adding to the array you should generate a game page in the `games/` directory. You can manually copy `games/template.html` or use the admin generator located at `admin/generator.html`.
+Games are listed in `js/games_data.js` in the `games` array. Each entry defines the page id, title, description, thumbnail, source URL and genre. After adding to the array you should generate a game page in the `games/` directory. You can manually copy `games/template.html` or use the admin generator located at `admin/generator.html`.
 
 Thumbnails for games live in `images/games/`. Make sure to add a suitable image for each game.
+
+## Game Categories
+
+The homepage allows visitors to filter games by genre. Available categories are **Action**, **Adventure**, **Puzzle**, **Strategy**, and **Sports**. Category names are matched case-insensitively.
+
 
 ## Logo Generator
 
