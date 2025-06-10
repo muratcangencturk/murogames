@@ -38,3 +38,6 @@ The images will be written to the `images/` directory.
 4. Submit a pull request describing your changes.
 
 
+## License
+
+This project is licensed under the [MIT License](LICENSE).
