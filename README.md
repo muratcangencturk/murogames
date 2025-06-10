@@ -22,7 +22,7 @@ Then visit `http://localhost:8000` to browse the games.
 
 ## Adding Games
 
-Games are listed in `js/games_data.js` in the `games` array. Each entry defines the page id, title, description, thumbnail, source URL and genre. After adding to the array you should generate a game page in the `games/` directory. You can manually copy `games/template.html` or use the admin generator located at `admin/generator.html`.
+Games are listed in `js/games.json` as an array of objects. Each entry defines the page id, title, description, thumbnail, source URL and genre. After updating the JSON you should generate a game page in the `games/` directory. You can manually copy `games/template.html` or use the admin generator located at `admin/generator.html`.
 
 Thumbnails for games live in `images/games/`. Make sure to add a suitable image for each game.
 
