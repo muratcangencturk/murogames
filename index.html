@@ -461,9 +461,18 @@
         const gameFrame = document.getElementById('game-frame');
         const gameDescription = document.getElementById('game-description');
         const likeCount = document.getElementById('like-count');
+        let currentGame = null;
 
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
+            // Load stored likes from localStorage
+            games.forEach(g => {
+                const stored = localStorage.getItem('likes_' + g.id);
+                if (stored !== null) {
+                    g.likes = parseInt(stored, 10);
+                }
+            });
+
             // Load games
             loadGames();
             // Build category buttons
@@ -528,9 +537,14 @@
 
         // Like button
         likeButton.addEventListener('click', function() {
-            const currentLikes = parseInt(likeCount.textContent);
-            likeCount.textContent = currentLikes + 1;
-            
+            if (!currentGame) return;
+            const key = 'likes_' + currentGame.id;
+            const currentLikes = parseInt(localStorage.getItem(key) || currentGame.likes || 0, 10);
+            const newLikes = currentLikes + 1;
+            localStorage.setItem(key, newLikes);
+            currentGame.likes = newLikes;
+            likeCount.textContent = newLikes;
+
             // Toggle heart icon
             const heartIcon = likeButton.querySelector('i');
             heartIcon.classList.toggle('far');
@@ -702,9 +716,15 @@
         // Load specific game
         function loadGame(gameId) {
             const game = games.find(g => g.id === gameId);
-            
+
             if (!game) return;
-            
+
+            currentGame = game;
+            const stored = localStorage.getItem('likes_' + game.id);
+            if (stored !== null) {
+                game.likes = parseInt(stored, 10);
+            }
+
             // Load game details
             gameTitle.textContent = game.title;
             gameCategory.textContent = game.category;
