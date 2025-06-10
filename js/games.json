@@ -1,4 +1,4 @@
-const games = [
+[
   {
     "id": "sort-the-court",
     "title": "Sort the Court!",
@@ -599,4 +599,4 @@ const games = [
     "new": true,
     "likes": 250
   }
-];
+]

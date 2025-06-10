@@ -423,7 +423,7 @@
 </footer>
     <!-- JavaScript -->
     <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
-    <script src="js/games_data.js"></script>
+    <!-- Load game list dynamically -->
     <script>
         // Game data (you would typically load this from a server)
 
@@ -462,17 +462,19 @@
         const gameDescription = document.getElementById('game-description');
         const likeCount = document.getElementById('like-count');
 
-        // Initialize page
+        // Initialize page by loading game data
         document.addEventListener('DOMContentLoaded', function() {
-            // Load games
-            loadGames();
-            // Build category buttons
-            renderCategoryButtons();
-            
-            // Show loading screen for 1 second to simulate loading
-            setTimeout(() => {
-                loadingScreen.style.display = 'none';
-            }, 1000);
+            fetch('js/games.json')
+                .then(resp => resp.json())
+                .then(data => {
+                    window.games = data;
+                    loadGames();
+                    renderCategoryButtons();
+                })
+                .catch(err => console.error('Error loading games:', err))
+                .finally(() => {
+                    loadingScreen.style.display = 'none';
+                });
         });
 
         // Mobile menu toggle
